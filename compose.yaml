@@ -1,0 +1,16 @@
+services:
+  app:
+    build:
+      context: ./podman/node
+      dockerfile: Dockerfile
+    image: localhost/wowdesk-node:24
+    working_dir: /app
+    userns_mode: "keep-id"
+    init: true
+    command: ["sleep", "infinity"]
+    environment:
+      NPM_CONFIG_CACHE: /tmp/npm-cache
+    ports:
+      - "127.0.0.1:5173:5173"
+    volumes:
+      - .:/app:z
