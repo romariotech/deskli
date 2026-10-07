@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { RouterLink } from 'vue-router'
 import type { TicketSummary } from '@/types/ticket'
-import StatusBadge from '@/components/deskli/StatusBadge.vue'
-import PriorityBadge from '@/components/deskli/PriorityBadge.vue'
+import StatusBadge from '@/components/StatusBadge.vue'
+import PriorityBadge from '@/components/PriorityBadge.vue'
+import { formatDateTime, formatListTimestamp } from '@/lib/format'
 defineProps<{ ticket: TicketSummary; selected?: boolean; unread?: boolean }>()
 defineEmits<{ select: [id: string] }>()
 </script>
@@ -24,13 +25,12 @@ defineEmits<{ select: [id: string] }>()
   >
     <div class="flex justify-between gap-2 text-xs text-muted-foreground">
       <span>{{ ticket.code }}</span>
-      <time :datetime="ticket.updatedAt">
-        {{
-          new Date(ticket.updatedAt).toLocaleTimeString('pt-BR', {
-            hour: '2-digit',
-            minute: '2-digit',
-          })
-        }}
+      <time
+        :datetime="ticket.updatedAt"
+        :title="formatDateTime(ticket.updatedAt)"
+        class="tabular-nums"
+      >
+        {{ formatListTimestamp(ticket.updatedAt) }}
       </time>
     </div>
     <p

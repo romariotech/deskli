@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { computed, watch } from 'vue'
-import { LockKeyhole, Send } from '@lucide/vue'
+import { computed, ref, watch } from 'vue'
+import { LockKeyhole, Paperclip, Send } from '@lucide/vue'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { Textarea } from '@/components/ui/textarea'
-import DeskliButton from '@/components/deskli/DeskliButton.vue'
+import DeskliButton from '@/components/DeskliButton.vue'
 import AttachmentItem from './AttachmentItem.vue'
 import type {
   ComposerDraft,
@@ -67,6 +67,7 @@ function submit() {
   }
   emit('submit', { ...payload, requestId })
 }
+const fileInput = ref<HTMLInputElement>()
 function attach(event: Event) {
   const input = event.target as HTMLInputElement
   emit('attach', Array.from(input.files ?? []))
@@ -162,14 +163,24 @@ function shortcut(event: KeyboardEvent) {
     </p>
     <div class="flex flex-wrap items-center justify-between gap-3">
       <input
+        ref="fileInput"
         type="file"
         multiple
+        hidden
+        tabindex="-1"
         :accept="uploadPolicy.acceptedTypes.join(',')"
         :disabled="submitting"
         aria-label="Anexar arquivos"
-        class="w-full max-w-64 text-xs file:mr-2 file:rounded-md file:border file:border-input file:bg-background file:p-2 file:text-foreground"
         @change="attach"
       />
+      <DeskliButton
+        variant="outline"
+        :disabled="submitting"
+        @click="fileInput?.click()"
+      >
+        <template #icon><Paperclip /></template>
+        Anexar arquivos
+      </DeskliButton>
       <DeskliButton :loading="submitting" :disabled="!allowed" @click="submit">
         <template #icon><Send /></template>
         {{

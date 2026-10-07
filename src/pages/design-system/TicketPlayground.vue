@@ -3,6 +3,13 @@ import { computed, reactive, ref, watch, onBeforeUnmount } from 'vue'
 import { useRoute } from 'vue-router'
 import { toast } from 'vue-sonner'
 import { ArrowLeft } from '@lucide/vue'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import type {
   TicketSummary,
   TicketMessage,
@@ -10,8 +17,8 @@ import type {
   MessageVisibility,
   UploadPolicy,
 } from '@/types/ticket'
-import SearchInput from '@/components/deskli/SearchInput.vue'
-import DeskliButton from '@/components/deskli/DeskliButton.vue'
+import SearchInput from '@/components/SearchInput.vue'
+import DeskliButton from '@/components/DeskliButton.vue'
 import TicketListItem from '@/features/tickets/components/TicketListItem.vue'
 import MessageItem from '@/features/tickets/components/MessageItem.vue'
 import ReplyComposer from '@/features/tickets/components/ReplyComposer.vue'
@@ -216,19 +223,21 @@ function send() {
 <template>
   <div class="space-y-4">
     <div class="flex flex-wrap items-center gap-[var(--panel-padding)]">
-      <label class="flex deskli-choice items-center gap-2 text-xs">
-        Estado da fila
-        <select
-          v-model="state"
-          class="min-h-[var(--control-height)] rounded-md border border-input bg-background px-2 py-1"
-        >
-          <option value="ready">Com dados</option>
-          <option value="loading">Carregando</option>
-          <option value="empty">Vazio</option>
-          <option value="error">Erro</option>
-          <option value="forbidden">Sem permissão</option>
-        </select>
-      </label>
+      <div class="flex deskli-choice items-center gap-2 text-xs">
+        <span id="queue-state-label">Estado da fila</span>
+        <Select v-model="state">
+          <SelectTrigger aria-labelledby="queue-state-label" class="w-40">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="ready">Com dados</SelectItem>
+            <SelectItem value="loading">Carregando</SelectItem>
+            <SelectItem value="empty">Vazio</SelectItem>
+            <SelectItem value="error">Erro</SelectItem>
+            <SelectItem value="forbidden">Sem permissão</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
       <label class="flex deskli-choice items-center gap-2 text-xs">
         <Checkbox v-model="failSend" />
         Simular falha de envio

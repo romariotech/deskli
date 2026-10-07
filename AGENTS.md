@@ -9,10 +9,10 @@ Read `harness/README.md`, then the task-relevant context and rules. The canonica
 Deskli is a Vue 3 + TypeScript frontend using Vite, Tailwind CSS 4, shadcn-vue and Reka UI. Routes include login, Home, design-system catalog and 404. Authentication, tickets and uploads are simulated; do not invent backend contracts.
 
 - Primitives: `src/components/ui/`.
-- Product wrappers: `src/components/deskli/`.
+- Product components built on primitives: `src/components/` (root).
 - Ticket components: `src/features/tickets/components/`.
 - Pages/layout: `src/pages/`, `src/layouts/`.
-- Tokens: `src/assets/index.css`; shared geometry/states: `src/styles/deskli.css`.
+- Tokens, shared geometry and states: `src/assets/index.css`.
 - Project knowledge: `harness/`; executable tests: `tests/e2e/`.
 
 ## Development

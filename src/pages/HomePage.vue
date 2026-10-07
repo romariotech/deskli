@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue'
 import { RouterLink } from 'vue-router'
+import { ArrowRight, ArrowUpRight } from '@lucide/vue'
 import { Button } from '@/components/ui/button'
-import StatusBadge from '@/components/deskli/StatusBadge.vue'
+import StatusBadge from '@/components/StatusBadge.vue'
 import type { TicketStatus } from '@/types/ticket'
 
 const examples: { id: string; code: string; subject: string; organization: string; status: TicketStatus }[] = [
@@ -13,7 +14,7 @@ const examples: { id: string; code: string; subject: string; organization: strin
 </script>
 <template>
   <AppLayout title="Início">
-    <main class="home-content mx-auto w-full max-w-6xl py-2">
+    <div class="home-content mx-auto w-full max-w-6xl py-2">
       <header class="flex flex-wrap items-end justify-between gap-4">
         <div>
           <p class="mb-2 text-xs font-medium tracking-[0.12em] text-brand-text uppercase">Seu espaço de trabalho</p>
@@ -21,7 +22,7 @@ const examples: { id: string; code: string; subject: string; organization: strin
           <p class="mt-2 max-w-lg text-sm leading-6 text-muted-foreground">Acompanhe cada pedido, reúna o contexto e ajude sua equipe a seguir com o atendimento.</p>
         </div>
         <Button as-child>
-          <RouterLink to="/design-system#playground">Explorar atendimento <span aria-hidden="true">↗</span></RouterLink>
+          <RouterLink to="/design-system#playground">Explorar atendimento <ArrowUpRight class="size-4" aria-hidden="true" /></RouterLink>
         </Button>
       </header>
 
@@ -42,7 +43,7 @@ const examples: { id: string; code: string; subject: string; organization: strin
               <p class="mb-1 text-xs text-muted-foreground"><span class="tabular-nums">{{ ticket.code }}</span><span class="mx-2" aria-hidden="true">·</span>{{ ticket.organization }}</p>
               <p class="font-medium group-hover:text-brand-text">{{ ticket.subject }}</p>
             </div>
-            <div class="flex items-center gap-3"><StatusBadge :status="ticket.status" /><span class="text-muted-foreground" aria-hidden="true">↗</span></div>
+            <div class="flex items-center gap-3"><StatusBadge :status="ticket.status" /><ArrowUpRight class="size-4 text-muted-foreground" aria-hidden="true" /></div>
           </RouterLink>
         </div>
       </section>
@@ -56,9 +57,9 @@ const examples: { id: string; code: string; subject: string; organization: strin
         <div class="flex flex-col justify-center py-2 md:px-4">
           <h2 class="text-base font-medium">Uma interface, em cada detalhe.</h2>
           <p class="mt-2 text-sm leading-6 text-muted-foreground">Conheça os componentes e os estados que fazem parte do Deskli.</p>
-          <RouterLink to="/design-system" class="mt-2 self-start rounded-sm py-2 text-sm font-medium text-brand-text underline-offset-4 hover:underline">Ver design system <span class="ml-2" aria-hidden="true">→</span></RouterLink>
+          <RouterLink to="/design-system" class="mt-2 self-start rounded-sm py-2 text-sm font-medium text-brand-text underline-offset-4 hover:underline">Ver design system <ArrowRight class="ml-2 inline size-4" aria-hidden="true" /></RouterLink>
         </div>
       </section>
-    </main>
+    </div>
   </AppLayout>
 </template>

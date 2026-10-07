@@ -15,7 +15,7 @@ import {
   SidebarRail,
   useSidebar,
 } from '@/components/ui/sidebar'
-import ThemeMenu from '@/components/deskli/ThemeMenu.vue'
+import ThemeMenu from '@/components/ThemeMenu.vue'
 const route = useRoute()
 const { state, isMobile } = useSidebar()
 const iconOnly = computed(() => state.value === 'collapsed' && !isMobile.value)

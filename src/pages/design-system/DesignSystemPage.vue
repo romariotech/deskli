@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { toast } from 'vue-sonner'
 import {
   Plus,
@@ -11,15 +11,29 @@ import {
   LockKeyhole,
   Search,
 } from '@lucide/vue'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import AppLayout from '@/layouts/AppLayout.vue'
-import DeskliButton from '@/components/deskli/DeskliButton.vue'
-import IconButton from '@/components/deskli/IconButton.vue'
-import FormField from '@/components/deskli/FormField.vue'
-import AbAvatar from '@/components/deskli/AbAvatar.vue'
-import AssigneeSelect from '@/components/deskli/AssigneeSelect.vue'
-import SearchInput from '@/components/deskli/SearchInput.vue'
-import StatusBadge from '@/components/deskli/StatusBadge.vue'
-import PriorityBadge from '@/components/deskli/PriorityBadge.vue'
+import TicketTable from '@/features/tickets/components/TicketTable.vue'
+import type { TicketSummary } from '@/types/ticket'
+import DeskliButton from '@/components/DeskliButton.vue'
+import IconButton from '@/components/IconButton.vue'
+import {
+  Field,
+  FieldDescription,
+  FieldError,
+  FieldLabel,
+} from '@/components/ui/field'
+import AbAvatar from '@/components/AbAvatar.vue'
+import AssigneeSelect from '@/components/AssigneeSelect.vue'
+import SearchInput from '@/components/SearchInput.vue'
+import StatusBadge from '@/components/StatusBadge.vue'
+import PriorityBadge from '@/components/PriorityBadge.vue'
 import TicketPlayground from './TicketPlayground.vue'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -50,29 +64,55 @@ const density = ref('compact')
 const subject = ref('')
 const touched = ref(false)
 const description = ref('')
+const subjectInvalid = computed(() => touched.value && !subject.value.trim())
 const search = ref('')
 const assignee = ref<string | null>('ana')
 const checked = ref(true)
 const enabled = ref(true)
 const dialog = ref(false)
 const cancelButton = ref<InstanceType<typeof Button>>()
+const tableSeed: [string, string, TicketSummary['status'], TicketSummary['priority'], boolean][] = [
+  ['Não consigo acessar o painel', 'Estúdio Aurora', 'in_progress', 'high', true],
+  ['Dúvida sobre o relatório mensal', 'Horizonte Digital', 'waiting_customer', 'medium', false],
+  ['Atualização dos dados de contato', 'Clínica São José', 'resolved', 'low', false],
+  ['Erro ao anexar PDF de contrato', 'Marcenaria Vieira', 'open', 'medium', true],
+  ['Solicitação de novo usuário para a equipe financeira', 'Grupo Tramontana', 'in_progress', 'medium', false],
+  ['Notificações por e-mail não chegam', 'Padaria Sol Nascente', 'waiting_customer', 'high', false],
+  ['Alterar responsável pelo chamado', 'Estúdio Aurora', 'resolved', 'low', false],
+  ['Relatório exportado com datas erradas', 'Horizonte Digital', 'open', 'high', true],
+  ['Como redefinir minha senha?', 'Clínica São José', 'resolved', 'low', false],
+  ['Fatura duplicada no portal', 'Grupo Tramontana', 'in_progress', 'high', false],
+  ['Pedido de acesso somente leitura', 'Marcenaria Vieira', 'open', 'low', false],
+  ['Tela em branco após o login', 'Padaria Sol Nascente', 'waiting_customer', 'medium', true],
+]
+const tableTickets: TicketSummary[] = tableSeed.map(
+  ([subject, organizationName, status, priority, unread], index) => ({
+    id: `t${index + 1}`,
+    code: `DSK-${1039 - index}`,
+    subject,
+    organizationName,
+    status,
+    priority,
+    assignee: null,
+    updatedAt: new Date(Date.UTC(2026, 9, 2, 12, 0) - index * 47 * 60_000).toISOString(),
+    unread,
+  }),
+)
 const swatches = [
-  { name: 'Marca', token: 'primary', hex: '#B9E58C', class: 'bg-primary' },
+  { name: 'Marca', token: 'primary', class: 'bg-primary' },
   {
     name: 'Fundo',
     token: 'background',
-    hex: 'background',
     class: 'bg-background',
   },
-  { name: 'Superfície', token: 'card', hex: 'card', class: 'bg-card' },
+  { name: 'Superfície', token: 'card', class: 'bg-card' },
   {
     name: 'Texto',
     token: 'foreground',
-    hex: 'foreground',
     class: 'bg-foreground',
   },
-  { name: 'Seleção', token: 'accent', hex: 'accent', class: 'bg-accent' },
-  { name: 'Borda', token: 'border', hex: 'border', class: 'bg-border' },
+  { name: 'Seleção', token: 'accent', class: 'bg-accent' },
+  { name: 'Borda', token: 'border', class: 'bg-border' },
 ]
 const variants = [
   'primary',
@@ -99,7 +139,7 @@ function focusCancel(event: Event) {
         v1.1.0
       </span>
     </template>
-    <main
+    <div
       :data-density="density"
       class="mx-auto w-full max-w-6xl space-y-4 pb-4"
     >
@@ -116,16 +156,18 @@ function focusCancel(event: Event) {
             para um atendimento simples, consistente e acessível.
           </p>
         </div>
-        <label class="grid gap-2 text-xs font-medium">
-          Densidade
-          <select
-            v-model="density"
-            class="min-h-[var(--control-height)] rounded-md border border-input bg-background px-3"
-          >
-            <option value="compact">Compacta · 32px</option>
-            <option value="comfortable">Confortável · 44px</option>
-          </select>
-        </label>
+        <div class="grid gap-2">
+          <span id="density-label" class="text-xs font-medium">Densidade</span>
+          <Select v-model="density">
+            <SelectTrigger aria-labelledby="density-label" class="w-48">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="compact">Compacta · 32px</SelectItem>
+              <SelectItem value="comfortable">Confortável · 44px</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
       <nav
         aria-label="Seções do design system"
@@ -138,6 +180,7 @@ function focusCancel(event: Event) {
             { id: 'forms', label: 'Formulários' },
             { id: 'identity', label: 'Identidade e estados' },
             { id: 'feedback', label: 'Feedback' },
+            { id: 'tables', label: 'Tabelas' },
             { id: 'playground', label: 'Atendimento' },
           ]"
           :key="section.id"
@@ -165,8 +208,7 @@ function focusCancel(event: Event) {
           </div>
         </div>
         <p class="text-xs text-muted-foreground">
-          Marca #B9E58C · Light #FFFFFF / #18181B · Dark #09090B / #FAFAFA.
-          Alterne a aparência no menu do perfil.
+          Os valores vêm dos tokens em index.css. Alterne a aparência no menu do perfil.
         </p>
         <div class="grid gap-4 border-t pt-4 md:grid-cols-2">
           <div>
@@ -274,62 +316,73 @@ function focusCancel(event: Event) {
           Labels persistentes, ajuda contextual e erros associados ao controle.
         </p>
         <div class="grid gap-4 md:grid-cols-2">
-          <FormField
-            id="subject"
-            label="Assunto"
-            description="Descreva brevemente o que você precisa."
-            :error="
-              touched && !subject.trim()
-                ? 'Informe o assunto do chamado.'
-                : undefined
-            "
-            required
-            v-slot="field"
-          >
+          <Field :data-invalid="subjectInvalid">
+            <FieldLabel for="subject">Assunto (obrigatório)</FieldLabel>
             <Input
-              v-bind="field"
+              id="subject"
               v-model="subject"
               placeholder="Ex.: Não consigo acessar o painel"
               required
+              :aria-invalid="subjectInvalid"
+              :aria-describedby="
+                subjectInvalid ? 'subject-help subject-error' : 'subject-help'
+              "
               @blur="touched = true"
             />
-          </FormField>
-          <FormField id="assignee" label="Responsável" v-slot="field">
+            <FieldDescription id="subject-help">
+              Descreva brevemente o que você precisa.
+            </FieldDescription>
+            <FieldError v-if="subjectInvalid" id="subject-error" class="flex items-center gap-1">
+              <CircleAlert class="size-3.5" aria-hidden="true" />
+              Informe o assunto do chamado.
+            </FieldError>
+          </Field>
+          <Field>
+            <FieldLabel for="assignee">Responsável</FieldLabel>
             <AssigneeSelect
-              v-bind="field"
+              id="assignee"
               v-model="assignee"
               :options="[
                 { id: 'ana', name: 'Ana Martins', teamName: 'Suporte' },
                 { id: 'pedro', name: 'Pedro Lima', teamName: 'Suporte' },
               ]"
             />
-          </FormField>
-          <FormField
-            id="example-error"
-            label="Assunto com erro"
-            error="Informe o assunto do chamado."
-            v-slot="field"
-          >
-            <Input v-bind="field" model-value="" readonly />
-          </FormField>
+          </Field>
+          <Field data-invalid="true">
+            <FieldLabel for="example-error">Assunto com erro</FieldLabel>
+            <Input
+              id="example-error"
+              model-value=""
+              readonly
+              aria-invalid="true"
+              aria-describedby="example-error-message"
+            />
+            <FieldError id="example-error-message" class="flex items-center gap-1">
+              <CircleAlert class="size-3.5" aria-hidden="true" />
+              Informe o assunto do chamado.
+            </FieldError>
+          </Field>
           <div class="space-y-2">
             <p class="text-xs font-medium">Busca</p>
             <SearchInput v-model="search" />
           </div>
-          <FormField id="description" label="Descrição" v-slot="field">
+          <Field>
+            <FieldLabel for="description">Descrição</FieldLabel>
             <Textarea
-              v-bind="field"
+              id="description"
               v-model="description"
               placeholder="Conte um pouco mais sobre a solicitação…"
             />
-          </FormField>
+          </Field>
           <div class="grid gap-4">
-            <FormField id="readonly" label="Somente leitura" v-slot="field">
-              <Input v-bind="field" model-value="DSK-1042" readonly />
-            </FormField>
-            <FormField id="disabled" label="Indisponível" v-slot="field">
-              <Input v-bind="field" model-value="Campo desabilitado" disabled />
-            </FormField>
+            <Field>
+              <FieldLabel for="readonly">Somente leitura</FieldLabel>
+              <Input id="readonly" model-value="DSK-1042" readonly />
+            </Field>
+            <Field>
+              <FieldLabel for="disabled">Indisponível</FieldLabel>
+              <Input id="disabled" model-value="Campo desabilitado" disabled />
+            </Field>
           </div>
         </div>
         <div class="mt-4 flex flex-wrap gap-x-8 gap-y-3 border-t pt-4">
@@ -506,27 +559,33 @@ function focusCancel(event: Event) {
                   <p class="mb-2 text-xs text-muted-foreground">Prioridade</p>
                   <PriorityBadge priority="high" />
                 </div>
-                <FormField
-                  id="sheet-assignee"
-                  label="Responsável"
-                  v-slot="field"
-                >
+                <Field>
+                  <FieldLabel for="sheet-assignee">Responsável</FieldLabel>
                   <AssigneeSelect
-                    v-bind="field"
+                    id="sheet-assignee"
                     v-model="assignee"
                     :options="[
                       { id: 'ana', name: 'Ana Martins' },
                       { id: 'pedro', name: 'Pedro Lima' },
                     ]"
                   />
-                </FormField>
+                </Field>
               </div>
             </SheetContent>
           </Sheet>
         </div>
       </section>
+      <section id="tables" class="catalog-section">
+        <h2>06 / Tabelas e paginação</h2>
+        <p>
+          Lista densa de chamados com cabeçalhos de coluna, status e prioridade
+          com texto e ícone, e paginação por teclado. Dados fictícios, sem
+          chamadas de rede.
+        </p>
+        <TicketTable :tickets="tableTickets" :page-size="5" label="Chamados de exemplo" />
+      </section>
       <section id="playground" class="catalog-section">
-        <h2>06 / Atendimento em ação</h2>
+        <h2>07 / Atendimento em ação</h2>
         <p>
           Explore a fila, alterne entre resposta e nota interna, anexe arquivos
           e simule um envio. Dados e rascunhos existem apenas nesta página.
@@ -539,6 +598,6 @@ function focusCancel(event: Event) {
         <span>deskli · Design system 1.1.0</span>
         <span>Vue 3 · shadcn-vue · Reka UI · Tailwind CSS</span>
       </footer>
-    </main>
+    </div>
   </AppLayout>
 </template>

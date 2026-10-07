@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { FileText, RotateCcw, X, Download } from '@lucide/vue'
 import type { Attachment } from '@/types/ticket'
-import IconButton from '@/components/deskli/IconButton.vue'
+import IconButton from '@/components/IconButton.vue'
+import { formatFileSize } from '@/lib/format'
 defineProps<{
   attachment: Attachment
   removable?: boolean
@@ -19,7 +20,7 @@ defineEmits<{
     <div class="min-w-0 flex-1">
       <p class="break-all text-sm font-medium">{{ attachment.name }}</p>
       <p class="text-xs text-muted-foreground">
-        {{ (attachment.sizeBytes / 1024).toFixed(1) }} KB ·
+        {{ formatFileSize(attachment.sizeBytes) }} ·
         {{
           attachment.state === 'ready'
             ? 'Pronto'
@@ -30,8 +31,8 @@ defineEmits<{
       </p>
       <progress
         v-if="attachment.state === 'uploading'"
-        class="w-full accent-primary"
-        :value="attachment.progress"
+        class="deskli-progress mt-1"
+        :value="attachment.progress ?? 0"
         max="100"
         :aria-label="`Progresso de ${attachment.name}`"
       />

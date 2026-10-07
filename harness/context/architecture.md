@@ -5,11 +5,10 @@
 - `src/layouts/AppLayout.vue`: composição do shell com sidebar e cabeçalho.
 - `src/pages/`: login, Home, 404 e catálogo.
 - `src/components/ui/`: primitivas shadcn-vue/Reka UI; foco e teclado ficam com as primitivas.
-- `src/components/deskli/`: contratos compartilhados do produto.
+- `src/components/`: componentes do produto derivados de `ui/` e shell da aplicação (sidebar, menu de tema).
 - `src/features/tickets/components/`: mensagens, anexos, lista e compositor.
 - `src/pages/design-system/TicketPlayground.vue`: estado e operações simuladas.
-- `src/assets/index.css`: tokens semânticos e Tailwind 4.
-- `src/styles/deskli.css`: densidade, estados e geometria compartilhada.
+- `src/assets/index.css`: tokens semânticos e Tailwind 4. Inclui densidade, estados e geometria compartilhada.
 - `tests/e2e/` e `playwright.config.ts`: descoberta, isolamento e execução dos testes Chromium.
 
 Fluxo de dependências: páginas e contêineres compõem features e wrappers; estes reutilizam primitivas. Regras de negócio não devem entrar em primitivas. Adote a estrutura existente antes de introduzir camadas ou dependências novas.

@@ -7,9 +7,9 @@ A implementação segue [o design system oficial](../design/design-system.md) v1
 ## Organização e uso
 
 - `src/assets/index.css`: cores light/dark e registro dos tokens Tailwind.
-- `src/styles/deskli.css`: geometria e estados compartilhados das primitivas shadcn.
+- `src/assets/index.css` também contém a geometria e os estados compartilhados das primitivas shadcn.
 - `src/components/ui/`: primitivas shadcn-vue, com foco e teclado gerenciados por Reka UI.
-- `src/components/deskli/`: wrappers reutilizáveis.
+- `src/components/`: componentes do produto derivados das primitivas de `ui/` (botões, avatar, badges, busca, seletor, menu de tema) e shell da aplicação.
 - `src/features/tickets/components/`: composições de chamados, mensagens, anexos e editor.
 - `src/types/ticket.ts` e `src/constants/ticket-labels.ts`: contratos e traduções centralizadas.
 - `src/pages/design-system/`: catálogo e contêiner de demonstração.
@@ -18,7 +18,7 @@ A implementação segue [o design system oficial](../design/design-system.md) v1
 | --- | --- |
 | DeskliButton | `variant`, `size`, `disabled`, `loading`, `type`; padrão `button`. Loading bloqueia ativação e anuncia processamento. Slots padrão e `icon`. Enter/Espaço pela primitiva. |
 | IconButton | `label` obrigatório, `disabled`; label acessível no botão. |
-| FormField | `id`, `label`, `description`, `error`, `required`. O slot recebe `id`, `aria-invalid` e `aria-describedby`; repasse com `v-bind="field"` ao input. |
+| Field (shadcn-vue) | `Field` + `FieldLabel` + controle + `FieldDescription` + `FieldError`, de `@/components/ui/field`. Com erro: `data-invalid` no `Field`, `aria-invalid` e `aria-describedby` (ajuda e erro) no controle; `FieldError` leva ícone e usa `danger-fg`. |
 | SearchInput | `v-model`, `loading`, `disabled`; eventos `search` após 300ms ou Enter, `clear`. Respeita composição IME e devolve foco ao limpar. O contêiner deve cancelar respostas HTTP antigas. |
 | AssigneeSelect | `v-model: string | null`, `options`, `loading`, `disabled`, `error`, `id`; seleção por ID, opção sem responsável, navegação de teclado do Select. |
 | StatusBadge / PriorityBadge | `status` / `priority`, `showIcon`; texto e ícone centralizados, fallback neutro para desconhecidos. Não recebem foco. |
@@ -26,13 +26,14 @@ A implementação segue [o design system oficial](../design/design-system.md) v1
 | TicketListItem | `ticket`, `selected`, `unread`; evento `select(id)`. O link aponta ao chamado de demonstração via query da rota do catálogo. Ajustar destino ao integrar uma rota real de atendimento. |
 | MessageItem | `message`; renderiza texto escapado e distingue visibilidade interna com cadeado, título e superfície semântica. |
 | AttachmentItem | `attachment`, `removable`, `downloadable`; eventos `remove`, `download`, `retry`. O contêiner implementa acesso ao arquivo. |
+| TicketTable | `tickets: TicketSummary[]`, `label` (nome acessível, renderizado como `caption` oculto), `pageSize` (padrão 5), `pageSizeOptions` (padrão 5/10/20). Tabela semântica com `Table` e `Pagination` do shadcn-vue; paginação, “Itens por página” e resumo “Mostrando X–Y de N” ficam no próprio componente, sobre a lista recebida. Sem ordenação, filtros ou chamadas de rede: o contêiner real deve paginar no servidor e trocar o estado local por `v-model:page`. |
 | ReplyComposer | `ticketId`, `v-model: ComposerDraft`, `canWriteInternal`, `submitting`, `error`, `uploadPolicy`; eventos `change-visibility`, `attach`, `removeAttachment`, `retryAttachment`, `submit(SubmitReply)`. Abas de ativação manual. Ctrl/Cmd+Enter envia; Enter insere linha. |
 
 O contêiner mantém rascunhos separados por chamado e audiência. Não copie o mesmo corpo ao trocar visibilidade. `requestId` é estável para retry do mesmo payload; a garantia de idempotência depende do servidor. Desabilite o editor durante envio e limpe apenas o rascunho confirmado.
 
 ## Toasts com Sonner
 
-Usamos `vue-sonner`, com um único `Toaster` global em `App.vue` e configuração em `src/components/ui/sonner/Sonner.vue`. O tema acompanha `useTheme`; cores semânticas e geometria ficam em `src/styles/deskli.css`. A pilha fica no canto inferior direito, na camada 80, com até três notificações visíveis, duração padrão de 5s e botão de fechar em português.
+Usamos `vue-sonner`, com um único `Toaster` global em `App.vue` e configuração em `src/components/ui/sonner/Sonner.vue`. O tema acompanha `useTheme`; cores semânticas e geometria ficam em `src/assets/index.css`. A pilha fica no canto inferior direito, na camada 80, com até três notificações visíveis, duração padrão de 5s e botão de fechar em português.
 
 ```ts
 import { toast } from 'vue-sonner'

@@ -10,6 +10,13 @@ export function useTheme() {
       (mode.value === 'system' &&
         window.matchMedia('(prefers-color-scheme: dark)').matches)
     document.documentElement.classList.toggle('dark', dark)
+    const background = getComputedStyle(document.documentElement)
+      .getPropertyValue('--background')
+      .trim()
+    if (background)
+      document
+        .querySelector('meta[name="theme-color"]')
+        ?.setAttribute('content', background)
   }
   function setTheme(value: string) {
     if (!['light', 'dark', 'system'].includes(value)) return

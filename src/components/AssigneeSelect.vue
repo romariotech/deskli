@@ -6,6 +6,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { FieldError } from '@/components/ui/field'
 import AbAvatar from './AbAvatar.vue'
 import type { Assignee } from '@/types/ticket'
 defineProps<{
@@ -50,7 +51,5 @@ const emit = defineEmits<{ 'update:modelValue': [value: string | null] }>()
       </SelectItem>
     </SelectContent>
   </Select>
-  <p v-if="error" :id="`${id}-error`" class="text-xs text-danger-fg">
-    {{ error }}
-  </p>
+  <FieldError v-if="error" :id="`${id}-error`">{{ error }}</FieldError>
 </template>

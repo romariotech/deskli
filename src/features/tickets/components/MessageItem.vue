@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { LockKeyhole } from '@lucide/vue'
 import type { TicketMessage } from '@/types/ticket'
-import AbAvatar from '@/components/deskli/AbAvatar.vue'
+import AbAvatar from '@/components/AbAvatar.vue'
 import AttachmentItem from './AttachmentItem.vue'
+import { formatDateTime, formatTime } from '@/lib/format'
 defineProps<{ message: TicketMessage }>()
 </script>
 <template>
@@ -29,15 +30,10 @@ defineProps<{ message: TicketMessage }>()
           <span class="text-xs">{{ message.author.roleLabel }}</span>
           <time
             :datetime="message.createdAt"
-            :title="new Date(message.createdAt).toLocaleString('pt-BR')"
+            :title="formatDateTime(message.createdAt)"
             class="text-xs tabular-nums"
           >
-            {{
-              new Date(message.createdAt).toLocaleTimeString('pt-BR', {
-                hour: '2-digit',
-                minute: '2-digit',
-              })
-            }}
+            {{ formatTime(message.createdAt) }}
           </time>
         </div>
         <p

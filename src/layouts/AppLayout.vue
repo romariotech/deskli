@@ -12,12 +12,23 @@ withDefaults(defineProps<{
 }>(), {
   title: 'deskli',
 })
+
+function focusMain() {
+  document.getElementById('main-content')?.focus()
+}
 </script>
 
 <template>
   <SidebarProvider>
+    <a
+      href="#main-content"
+      class="sr-only rounded-md border border-input bg-background px-3 py-2 text-sm font-medium text-foreground focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[90]"
+      @click.prevent="focusMain"
+    >
+      Pular para o conteúdo
+    </a>
     <AppSidebar />
-    <SidebarInset class="min-w-0">
+    <SidebarInset id="main-content" tabindex="-1" class="min-w-0">
       <header class="flex h-12 shrink-0 items-center gap-3 border-b px-4">
         <SidebarTrigger aria-label="Alternar menu lateral" />
         <Separator orientation="vertical" class="!h-4" />

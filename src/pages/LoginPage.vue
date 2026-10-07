@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { computed, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import ThemeMenu from '@/components/deskli/ThemeMenu.vue'
-import { ArrowRight, Eye, EyeOff } from '@lucide/vue'
+import ThemeMenu from '@/components/ThemeMenu.vue'
+import { ArrowRight, CornerDownRight, Eye, EyeOff } from '@lucide/vue'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+import { Field, FieldError, FieldLabel } from '@/components/ui/field'
 
 const email = ref('')
 const password = ref('')
@@ -53,15 +53,15 @@ async function onSubmit() {
         <p class="mt-3 text-sm leading-6 text-muted-foreground">Entre para acompanhar os chamados<br class="hidden sm:block"> e dar continuidade às conversas.</p>
 
         <form class="mt-4 space-y-4" :aria-busy="loading" novalidate @submit.prevent="onSubmit">
-          <div class="space-y-2">
-            <Label for="email">E-mail de trabalho</Label>
+          <Field :data-invalid="!!emailError">
+            <FieldLabel for="email">E-mail de trabalho</FieldLabel>
             <Input id="email" v-model="email" type="email" name="email" required :disabled="loading"
               autocomplete="username" placeholder="voce@empresa.com" :aria-invalid="!!emailError"
               :aria-describedby="emailError ? 'email-error' : undefined" @blur="touched.email = true" />
-            <p v-if="emailError" id="email-error" class="text-xs text-danger-fg">{{ emailError }}</p>
-          </div>
-          <div class="space-y-2">
-            <Label for="password">Senha</Label>
+            <FieldError v-if="emailError" id="email-error">{{ emailError }}</FieldError>
+          </Field>
+          <Field :data-invalid="!!passwordError">
+            <FieldLabel for="password">Senha</FieldLabel>
             <div class="relative">
               <Input id="password" v-model="password" :type="showPassword ? 'text' : 'password'" name="password"
                 required :disabled="loading" :aria-invalid="!!passwordError"
@@ -73,8 +73,8 @@ async function onSubmit() {
                 <EyeOff v-if="showPassword" class="size-4" /><Eye v-else class="size-4" />
               </button>
             </div>
-            <p v-if="passwordError" id="password-error" class="text-xs text-danger-fg">{{ passwordError }}</p>
-          </div>
+            <FieldError v-if="passwordError" id="password-error">{{ passwordError }}</FieldError>
+          </Field>
           <Button type="submit" :disabled="loading" :aria-busy="loading" class="w-full justify-between px-4">
             {{ loading ? 'Entrando…' : 'Entrar no deskli' }}<ArrowRight class="size-4" aria-hidden="true" />
           </Button>
@@ -88,7 +88,6 @@ async function onSubmit() {
       <aside class="auth-story" aria-labelledby="story-title">
         <div class="flex items-center gap-2 text-xs font-medium text-muted-foreground"><span class="size-2 rounded-full bg-brand-text" />Atendimento com clareza</div>
         <h2 id="story-title" class="mt-8 max-w-96 text-3xl font-medium leading-[1.13] tracking-[-0.045em]">Menos ruído.<br>Mais conversa.</h2>
-        <p class="mt-5 max-w-80 text-sm leading-6 text-muted-foreground">Cada chamado com seu contexto. Cada conversa com um próximo passo.</p>
         <div class="auth-example mt-10" aria-label="Exemplo ilustrativo de um chamado">
           <div class="flex items-center justify-between gap-3 border-b border-border pb-4 text-xs">
             <span class="tabular-nums text-muted-foreground">DSK-1042</span><span class="rounded-md bg-accent px-2 py-1 text-accent-foreground">Em atendimento</span>
@@ -99,12 +98,11 @@ async function onSubmit() {
             <span class="flex size-8 shrink-0 items-center justify-center rounded-md bg-muted text-xs font-medium" aria-hidden="true">AM</span>
             <div><p class="text-xs font-medium">Ana Martins <span class="ml-1 font-normal text-muted-foreground">· Equipe</span></p><p class="mt-1 text-sm leading-6 text-muted-foreground">Olá! Vou acompanhar seu caso.<br>Vamos resolver isso juntos.</p></div>
           </div>
-          <div class="mt-5 flex items-center gap-2 border-t border-border pt-4 text-xs text-muted-foreground"><span class="text-brand-text" aria-hidden="true">↳</span>Conversa e histórico no mesmo lugar</div>
+          <div class="mt-5 flex items-center gap-2 border-t border-border pt-4 text-xs text-muted-foreground"><CornerDownRight class="size-4 text-brand-text" aria-hidden="true" />Conversa e histórico no mesmo lugar</div>
         </div>
-        <p class="mt-6 text-xs text-muted-foreground">Para quem atende. Para quem precisa de ajuda.</p>
       </aside>
     </div>
-    <footer class="auth-footer"><span>deskli · Seu atendimento, em boa companhia.</span><span class="hidden sm:block">Simples em cada conversa.</span></footer>
+    <footer class="auth-footer"><span>deskli · Ambiente de demonstração</span></footer>
   </main>
 </template>
 

@@ -19,11 +19,11 @@ The Playwright runner starts its own Vite on port 4173 (`--strictPort`, port mus
 
 ## Architecture
 
-Dependency flow: pages/containers compose features and `src/components/deskli/` wrappers, which reuse `src/components/ui/` primitives (shadcn-vue/Reka UI; focus and keyboard live there). No business rules in primitives. Don't add a second component library or new layers/dependencies without need.
+Dependency flow: pages/containers compose features and `src/components/` (product components built on primitives), which reuse `src/components/ui/` primitives (shadcn-vue/Reka UI; focus and keyboard live there). No business rules in primitives. Don't add a second component library or new layers/dependencies without need.
 
 - `src/App.vue` hosts the single toast (vue-sonner) outlet; `src/router/index.ts` defines routes; `src/layouts/AppLayout.vue` is the sidebar + header shell.
 - `src/features/tickets/components/` — messages, attachments, list, composer. State and simulated operations live in `src/pages/design-system/TicketPlayground.vue`.
-- Styling: semantic tokens + Tailwind 4 in `src/assets/index.css`; shared density/state/geometry in `src/styles/deskli.css`.
+- Styling: semantic tokens, Tailwind 4 and shared density/state/geometry all live in `src/assets/index.css`.
 - Tests: `tests/e2e/*.spec.js` using fixture-owned browser contexts (never launch Chromium manually). Don't add validation scripts under `scripts/`; per-test evidence goes through `testInfo.outputPath`; don't overwrite `harness/docs/screenshots/`.
 
 ## Conventions that aren't obvious

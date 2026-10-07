@@ -152,7 +152,7 @@ Badges têm altura mínima 24px; podem crescer com zoom. Campo com erro não mud
 - Base, listas, inputs, notas e botões: `box-shadow: none`.
 - Popover/dropdown: `0 4px 12px rgb(0 0 0 / 0.12)` em light, `0 4px 12px rgb(0 0 0 / 0.32)` em dark.
 - Modal: mesma linguagem; overlay `rgb(0 0 0 / 0.48)`.
-- Camadas: conteúdo 0; cabeçalho sticky 20; menu 40; overlay 50; modal 60; toast 80.
+- Camadas: conteúdo 0; cabeçalho sticky 20; overlay 50; modal e Sheet 60; menu, select e popover 70 (acima de modais); toast 80; link “Pular para o conteúdo” 90.
 - Popovers dentro de modal devem usar o contexto de portal do modal e ficar acima dele, sem quebrar o focus trap.
 
 ### Movimento
@@ -179,7 +179,7 @@ Em celular: padding 16px, ações de pelo menos 44px, formulário em uma coluna.
 
 Todos os componentes interativos têm estados default, hover, focus-visible, disabled e, quando aplicável, active, loading, error e selected. Disabled bloqueia ativação por mouse e teclado. Loading bloqueia envio duplicado, mantém largura e anuncia processamento. Foco não pode depender do hover.
 
-- `focus-visible`: outline 2px em `ring`, offset 2px; não cortar com overflow do pai.
+- `focus-visible`: outline 2px em `ring`, offset 2px; não cortar com overflow do pai. Há uma única regra global em `index.css`, fora de `@layer` e sem `!important`; as primitivas não definem `outline-none` nem `ring` de foco.
 - `disabled`: tokens próprios, sem reduzir opacidade indiscriminadamente em toda a seção.
 - `error`: texto + ícone + contorno `danger-border`, com `aria-invalid` e descrição associada.
 - `selected`: fundo accent + indicação persistente e semântica correta.
@@ -209,11 +209,11 @@ Props: `variant`, `size: 'sm'|'md'|'lg'`, `disabled=false`, `loading=false`, `ty
 
 Loading: spinner ocupa o slot do ícone e rótulo muda para “Enviando…” quando apropriado; manter largura mínima anterior. Enter e Espaço ativam button. Ação destrutiva real usa diálogo com nome do objeto, “Cancelar” e “Excluir”; foco inicial em Cancelar, retorno ao acionador após fechar.
 
-### 7.2 FormField, Input e Textarea
+### 7.2 Field, Input e Textarea
 
 **Anatomia:** label persistente → campo → ajuda → erro. Gap 6px; erro logo abaixo do controle. Input 32px, padding horizontal 10px, radius 4px, background, foreground e borda input. Textarea mínimo 80px, resize vertical, sem cortar texto.
 
-Props do campo: `id`, `label`, `description?`, `error?`, `required=false`. Props do input: `modelValue`, `type`, `name`, `autocomplete`, `placeholder`, `disabled`, `readonly`, `maxlength?`. Emitir `update:modelValue`, `blur` e `focus`.
+Campo montado com os componentes shadcn-vue `Field`, `FieldLabel`, `FieldDescription` e `FieldError` (`@/components/ui/field`); não há wrapper próprio. Com erro: `data-invalid` no `Field`, `aria-invalid="true"` e `aria-describedby` apontando para ajuda e erro no controle; `FieldError` inclui ícone e `danger-fg`. Props do input: `modelValue`, `type`, `name`, `autocomplete`, `placeholder`, `disabled`, `readonly`, `maxlength?`. Emitir `update:modelValue`, `blur` e `focus`.
 
 Obrigatório recebe indicador textual ou asterisco explicado no formulário. Placeholder é exemplo, não substitui label. Erros aparecem após blur ou tentativa de envio; ao corrigir, revalidar sem apagar o valor. Campo readonly é legível e copiável; disabled não é usado para exibir informação consultável.
 
@@ -304,7 +304,19 @@ Props: `ticketId`, `modelValue: ComposerDraft`, `canWriteInternal`, `submitting`
 - Rascunhos em memória por padrão. Persistência local de dados de atendimento requer decisão explícita do produto; tema pode persistir sem essa decisão.
 - Ao receber mensagens novas, não puxar o scroll se a pessoa estiver lendo o histórico; mostrar “Novas mensagens”.
 
-### 7.14  Feedback e Dialog
+### 7.14 Tabela e paginação
+
+Para listas comparáveis em desktop (colunas com o mesmo tipo de dado); a fila de conversa continua sendo `TicketListItem`. Usar `Table` e `Pagination` do shadcn-vue, dentro de contêiner com borda 1px e raio 4px. Texto 14/20px, células com padding horizontal 12px, cabeçalho `th` com peso 500, hover de linha em `secondary`, sem zebra nem sombra. IDs e datas com números tabulares; assunto quebra (`overflow-wrap:anywhere`) e demais colunas não quebram. Status e prioridade reutilizam os badges da seção 7.7. Em telas estreitas a tabela rola horizontalmente dentro do próprio contêiner; a página não rola na horizontal (320px).
+
+- **Nome acessível:** `caption` visualmente oculto; `th` por coluna. Chamado não lido leva o texto “Não lido”, nunca só peso.
+- **Estados:** vazio mostra “Nenhum chamado encontrado.” em linha única; loading, erro e sem permissão seguem a seção 7.9.
+- **Paginação:** `nav` com nome “Paginação”; Anterior/Próxima com `aria-label`, itens “Página N” com `aria-current='page'` na atual, elipse com texto para leitor de tela. Primeira e última sempre visíveis, uma página vizinha de cada lado. Anterior e Próxima ficam desabilitadas nas pontas; alvos de 32px (44px em toque).
+- **Itens por página:** Select do shadcn-vue com rótulo visível “Itens por página” (5, 10, 20, valores configuráveis pelo produto). Mudar o valor volta para a página 1. O resumo “Mostrando X–Y de N chamados” é anunciado em região `aria-live='polite'`.
+- **Servidor:** a paginação do catálogo é local e simulada. Em produção, página, tamanho e total vêm da API; não inventar limites de página.
+
+Teste: `tests/e2e/design-system.spec.js` (“tabela de chamados com paginação”).
+
+### 7.15 Feedback e Dialog
 
 Feedback: inline para erros que exigem correção, **Sonner (`vue-sonner`)** para confirmações transitórias. Um único `Toaster`, de `src/components/ui/sonner`, fica em `App.vue`, fora das rotas. Não criar hosts por página nem um sistema paralelo de toasts.
 
@@ -415,98 +427,17 @@ IDs são strings opacas. Rótulos pt-BR ficam em um mapa central, separados dos 
 
 ## 10. Quick start — tokens CSS e Tailwind 4
 
-Base de integração proposta para projeto que já tenha Tailwind 4 e shadcn-vue configurados. Mesclar no stylesheet global, preservando imports necessários do projeto; não duplicar `@import` nem blocos de tema existentes. Configurar `tailwind.cssVariables: true` em `components.json`. A definição usa cores completas em hexadecimal.
+Trecho de `src/assets/index.css` (fonte real do projeto; regras por componente `[data-slot=…]` ficam no mesmo arquivo, depois deste trecho). Para outro projeto com Tailwind 4 e shadcn-vue, mesclar no stylesheet global, preservando imports necessários do projeto; não duplicar `@import` nem blocos de tema existentes. Configurar `tailwind.cssVariables: true` em `components.json`. A definição usa cores completas em hexadecimal minúsculo, como no código.
 
 ```css
-@import "tailwindcss";
-@custom-variant dark (&:where(.dark, .dark *));
-
-:root {
-  color-scheme: light;
-  --background: #FFFFFF;
-  --foreground: #18181B;
-  --card: #FAFAFA;
-  --card-foreground: #18181B;
-  --popover: #FFFFFF;
-  --popover-foreground: #18181B;
-  --primary: #B9E58C;
-  --primary-foreground: #18181B;
-  --primary-hover: #C9EDA6;
-  --primary-active: #A4D574;
-  --secondary: #F4F4F5;
-  --secondary-foreground: #18181B;
-  --muted: #F4F4F5;
-  --muted-foreground: #52525B;
-  --accent: #EFF5E9;
-  --accent-foreground: #365C36;
-  --brand-text: #365C36;
-  --border: #E4E4E7;
-  --input: #71717A;
-  --ring: #365C36;
-  --destructive: #B91C1C;
-  --destructive-foreground: #FFFFFF;
-  --danger-bg: #FEF2F2;
-  --danger-fg: #B91C1C;
-  --danger-border: #B91C1C;
-  --info-bg: #EFF6FF;
-  --info-fg: #1D4ED8;
-  --success-bg: #F0FDF4;
-  --success-fg: #166534;
-  --warning-bg: #FFFBEB;
-  --warning-fg: #92400E;
-  --disabled-bg: #E4E4E7;
-  --disabled-fg: #71717A;
-  --radius: 0.25rem;
-  --ab-font-sans: 'DM Sans', ui-sans-serif, system-ui, sans-serif;
-  --ab-font-mono: 'DM Sans', ui-sans-serif, monospace;
-  --ab-space-1: 0.25rem;
-  --ab-space-2: 0.5rem;
-  --ab-space-3: 0.75rem;
-  --ab-space-4: 1rem;
-  --ab-space-6: 1.5rem;
-  --ab-space-8: 2rem;
-  --ab-duration-fast: 120ms;
-  --ab-duration-panel: 180ms;
-  --ab-ease: cubic-bezier(0.2, 0, 0, 1);
-  --ab-shadow-overlay: 0 4px 12px rgb(0 0 0 / 0.12);
-}
-.dark {
-  color-scheme: dark;
-  --background: #09090B;
-  --foreground: #FAFAFA;
-  --card: #18181B;
-  --card-foreground: #FAFAFA;
-  --popover: #18181B;
-  --popover-foreground: #FAFAFA;
-  --primary: #B9E58C;
-  --primary-foreground: #18181B;
-  --primary-hover: #C9EDA6;
-  --primary-active: #A4D574;
-  --secondary: #27272A;
-  --secondary-foreground: #FAFAFA;
-  --muted: #27272A;
-  --muted-foreground: #A1A1AA;
-  --accent: #202D24;
-  --accent-foreground: #C2DDA9;
-  --brand-text: #B9E58C;
-  --border: #3F3F46;
-  --input: #71717A;
-  --ring: #B9E58C;
-  --destructive: #B91C1C;
-  --destructive-foreground: #FFFFFF;
-  --danger-bg: #450A0A;
-  --danger-fg: #FCA5A5;
-  --danger-border: #F87171;
-  --info-bg: #172554;
-  --info-fg: #93C5FD;
-  --success-bg: #052E16;
-  --success-fg: #86EFAC;
-  --warning-bg: #291E0B;
-  --warning-fg: #FCD34D;
-  --disabled-bg: #27272A;
-  --disabled-fg: #A1A1AA;
-  --ab-shadow-overlay: 0 4px 12px rgb(0 0 0 / 0.32);
-}
+@import '@fontsource/dm-sans/400.css';
+@import '@fontsource/dm-sans/500.css';
+@import '@fontsource/dm-sans/600.css';
+@import 'tailwindcss';
+@import 'tw-animate-css';
+@import 'shadcn-vue/tailwind.css';
+@import 'vue-sonner/style.css';
+@custom-variant dark (&:is(.dark *));
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -541,28 +472,155 @@ Base de integração proposta para projeto que já tenha Tailwind 4 e shadcn-vue
   --color-warning-fg: var(--warning-fg);
   --color-disabled-bg: var(--disabled-bg);
   --color-disabled-fg: var(--disabled-fg);
-  --font-sans: var(--ab-font-sans);
-  --font-mono: var(--ab-font-mono);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --font-sans: 'DM Sans', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'DM Sans', ui-monospace, monospace;
   --radius-sm: 0.125rem;
-  --radius-md: var(--radius);
+  --radius-md: 0.25rem;
   --radius-lg: 0.5rem;
 }
+:root {
+  --background: #ffffff;
+  --foreground: #18181b;
+  --card: #fafafa;
+  --card-foreground: #18181b;
+  --popover: #ffffff;
+  --popover-foreground: #18181b;
+  --primary: #b9e58c;
+  --primary-foreground: #18181b;
+  --primary-hover: #c9eda6;
+  --primary-active: #a4d574;
+  --secondary: #f4f4f5;
+  --secondary-foreground: #18181b;
+  --muted: #f4f4f5;
+  --muted-foreground: #52525b;
+  --accent: #eff5e9;
+  --accent-foreground: #365c36;
+  --brand-text: #365c36;
+  --border: #e4e4e7;
+  --input: #71717a;
+  --ring: #365c36;
+  --destructive: #b91c1c;
+  --destructive-foreground: #ffffff;
+  --danger-bg: #fef2f2;
+  --danger-fg: #b91c1c;
+  --danger-border: #b91c1c;
+  --info-bg: #eff6ff;
+  --info-fg: #1d4ed8;
+  --success-bg: #f0fdf4;
+  --success-fg: #166534;
+  --warning-bg: #fffbeb;
+  --warning-fg: #92400e;
+  --disabled-bg: #e4e4e7;
+  --disabled-fg: #71717a;
+  color-scheme: light;
+}
+.dark {
+  --background: #09090b;
+  --foreground: #fafafa;
+  --card: #18181b;
+  --card-foreground: #fafafa;
+  --popover: #18181b;
+  --popover-foreground: #fafafa;
+  --primary: #b9e58c;
+  --primary-foreground: #18181b;
+  --primary-hover: #c9eda6;
+  --primary-active: #a4d574;
+  --secondary: #27272a;
+  --secondary-foreground: #fafafa;
+  --muted: #27272a;
+  --muted-foreground: #a1a1aa;
+  --accent: #202d24;
+  --accent-foreground: #c2dda9;
+  --brand-text: #b9e58c;
+  --border: #3f3f46;
+  --input: #71717a;
+  --ring: #b9e58c;
+  --destructive: #b91c1c;
+  --destructive-foreground: #ffffff;
+  --danger-bg: #450a0a;
+  --danger-fg: #fca5a5;
+  --danger-border: #f87171;
+  --info-bg: #172554;
+  --info-fg: #93c5fd;
+  --success-bg: #052e16;
+  --success-fg: #86efac;
+  --warning-bg: #291e0b;
+  --warning-fg: #fcd34d;
+  --disabled-bg: #27272a;
+  --disabled-fg: #a1a1aa;
+  color-scheme: dark;
+}
+:root {
+  --sidebar: var(--card);
+  --sidebar-foreground: var(--foreground);
+  --sidebar-primary: var(--primary);
+  --sidebar-primary-foreground: var(--primary-foreground);
+  --sidebar-accent: var(--accent);
+  --sidebar-accent-foreground: var(--accent-foreground);
+  --sidebar-border: var(--border);
+  --sidebar-ring: var(--ring);
+}
+
+:root {
+  --control-height: 32px;
+  --field-height: 32px;
+  --panel-padding: 12px;
+  --section-gap: 16px;
+}
+
 @layer base {
+  * {
+    border-color: var(--border);
+  }
   body {
     margin: 0;
     background: var(--background);
     color: var(--foreground);
-    font-family: var(--ab-font-sans);
+    font-family: 'DM Sans', sans-serif;
     font-size: 0.875rem;
     line-height: 1.25rem;
   }
-  :focus-visible {
-    outline: 2px solid var(--ring);
-    outline-offset: 2px;
+  button,
+  a,
+  input,
+  textarea {
+    -webkit-tap-highlight-color: transparent;
+  }
+  button:not(:disabled),
+  [role='button'] {
+    cursor: pointer;
+  }
+  h1,
+  h2,
+  h3 {
+    font-weight: 600;
   }
 }
+/* Único indicador de foco. Fora de @layer para prevalecer sobre os utilitários das primitivas sem !important. */
+:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+  box-shadow: none;
+}
+[data-slot='sidebar-inset']:focus-visible {
+  outline: none;
+}
 @media (prefers-reduced-motion: reduce) {
-  :root { --ab-duration-fast: 0ms; --ab-duration-panel: 0ms; }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 ```
 
@@ -581,7 +639,7 @@ Classes base sugeridas para botão primário: `bg-primary text-primary-foregroun
 
 ```text
 src/
-  styles/deskli.css
+  assets/index.css              # tokens, tema e geometria compartilhada
   components/ui/                # primitivas shadcn-vue existentes
   features/tickets/components/  # TicketListItem, MessageItem, ReplyComposer
   composables/useTheme.ts
@@ -595,7 +653,7 @@ src/
 | Componente deskli | Base a reutilizar |
 | --- | --- |
 | Botão / ícone | Button |
-| Campo | Label + Input / Textarea + descrição/erro |
+| Campo | Field + FieldLabel + Input / Textarea + FieldDescription/FieldError |
 | Seletor responsável | Select ou Combobox + Avatar |
 | Checkbox / Switch | Checkbox / Switch |
 | Status / prioridade | Badge com mapa semântico |
@@ -604,6 +662,7 @@ src/
 | Modal / detalhes | Dialog / Sheet |
 | Anexos e notas | Composição própria com primitivas |
 | Lista de chamados | Elementos semânticos e wrappers, sem novo framework |
+| Tabela de chamados | Table + Pagination + Select + badges de status/prioridade |
 
 Catálogo precisa mostrar todas as variantes e estados em ambos os temas, com controles para alternar tema, densidade e dados de demonstração. Incluir exemplo interativo de fila → conversa → nota interna → anexo → envio simulado. Distinguir claramente simulação de persistência real.
 
@@ -614,6 +673,7 @@ Meta: WCAG 2.2 AA. A especificação não equivale a auditoria do produto implem
 - [ ] Todos os componentes têm light/dark com mesma geometria e sem perda de conteúdo.
 - [ ] Contraste verificado também em hover, seleção, erro e overlays, não apenas nos tokens base.
 - [ ] Navegação completa por teclado; foco visível e não oculto por sticky header/compositor.
+- [ ] Cada página tem um único landmark `main` (o shell `AppLayout` já o fornece via `SidebarInset`), com link “Pular para o conteúdo” como primeiro foco e título de documento por rota.
 - [ ] Labels, nomes acessíveis, estados e mensagens são anunciados corretamente.
 - [ ] Dialog/Sheet prende foco, Escape fecha quando permitido e devolve foco.
 - [ ] A 320px de largura e com zoom, formulário e conversa não exigem scroll horizontal da página.
@@ -696,7 +756,7 @@ Em janelas com até 740px de altura útil, o login compacta também títulos e e
 
 ## 17. Densidade compacta padrão
 
-O sistema usa controles de 32px no desktop, texto de corpo 14/20px e títulos de página 24/32px. A raiz permanece em 16px. Tokens em `src/styles/deskli.css`: `--control-height`, `--field-height` (32px), `--panel-padding` (12px), `--section-gap` (16px). A opção Confortável no catálogo eleva controles para 44px; não é uma preferência global persistida.
+O sistema usa controles de 32px no desktop, texto de corpo 14/20px e títulos de página 24/32px. A raiz permanece em 16px. Tokens em `src/assets/index.css`: `--control-height`, `--field-height` (32px), `--panel-padding` (12px), `--section-gap` (16px). A opção Confortável no catálogo eleva controles para 44px; não é uma preferência global persistida.
 
 Layout: cabeçalho 48px, sidebar desktop 224px, conteúdo com padding 16px. Home com linhas de 12px de padding e seções separadas por 20px; catálogo com seções de 16px. Fila do playground 260px, itens e mensagens com padding 12px, avatar 32px, editor mínimo 80px redimensionável. Login acompanha títulos e controles compactos, preservando a adaptação à altura da janela.
 

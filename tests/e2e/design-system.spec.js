@@ -124,7 +124,7 @@ test('Catálogo: temas, mensagens, anexos e sobreposições', async ({ page, bas
   await page
     .getByRole('button', { name: 'Tentar novamente: exemplo.pdf' })
     .click()
-  await page.getByText('KB · Pronto', { exact: false }).waitFor()
+  await page.getByText('B · Pronto', { exact: false }).waitFor()
   await page
     .getByRole('button', { name: 'Adicionar nota interna', exact: true })
     .click()
@@ -174,4 +174,55 @@ test('Catálogo: temas, mensagens, anexos e sobreposições', async ({ page, bas
   console.log(
     'PASS: themes, persistence, dialogs, nested select, keyboard tabs, drafts, failed send, duplicate prevention, upload retry, private note, five widths, mobile navigation, no browser errors.',
   )
+})
+
+test('Catálogo: tabela de chamados com paginação', async ({ page, baseURL }, testInfo) => {
+  const errors = []
+  page.on('pageerror', error => errors.push(error.message))
+  await page.goto(`${baseURL}/design-system#tables`)
+  const table = page.getByRole('table', { name: 'Chamados de exemplo' })
+  await table.waitFor()
+  const bodyRows = table.locator('tbody tr')
+  assert.equal(await bodyRows.count(), 5)
+  await page.getByText('Mostrando 1–5 de 12 chamados').waitFor()
+  assert.equal(
+    await page.getByRole('button', { name: 'Página anterior' }).isDisabled(),
+    true,
+  )
+
+  await page.getByRole('button', { name: 'Próxima página' }).click()
+  await page.getByText('Mostrando 6–10 de 12 chamados').waitFor()
+  assert.equal(
+    await page.getByRole('button', { name: 'Página 2', exact: true }).getAttribute('aria-current'),
+    'page',
+  )
+
+  await page.getByRole('button', { name: 'Página 3', exact: true }).focus()
+  await page.keyboard.press('Enter')
+  await page.getByText('Mostrando 11–12 de 12 chamados').waitFor()
+  assert.equal(await bodyRows.count(), 2)
+  assert.equal(
+    await page.getByRole('button', { name: 'Próxima página' }).isDisabled(),
+    true,
+  )
+
+  await page.getByRole('combobox', { name: 'Itens por página' }).click()
+  await page.getByRole('option', { name: '10', exact: true }).click()
+  await page.getByText('Mostrando 1–10 de 12 chamados').waitFor()
+  assert.equal(await bodyRows.count(), 10)
+  assert.equal(
+    await page.getByRole('button', { name: 'Página 1', exact: true }).getAttribute('aria-current'),
+    'page',
+  )
+
+  for (const width of [320, 768, 1280]) {
+    await page.setViewportSize({ width, height: 900 })
+    assert.equal(
+      await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth),
+      true,
+      `Table overflow at ${width}`,
+    )
+  }
+  await page.locator('#tables').screenshot({ path: testInfo.outputPath('table-pagination.png') })
+  assert.deepEqual(errors, [])
 })
